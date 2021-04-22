@@ -1,14 +1,16 @@
 @startuml Conjur OSS API
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
-
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 LAYOUT_LEFT_RIGHT()
 HIDE_STEREOTYPE()
+scale 0.75
+
 Container_Boundary(secrets, "Secrets Controller") {
   Deployment_Node(batch_secrets, "Batch Secrets", "/secrets") {
     Component(get_batch_secrets, "Request Multiple Secret Values", "GET")
   }
-  
+
   Deployment_Node(specific_secret, "Single Secret", "/secrets/{account}/{kind}/{identifier}") {
     Component(get_specific_secret, "Request a Secret Value", "GET")
     Component(set_specific_secret, "Set a Secret Value", "POST")
@@ -23,6 +25,8 @@ Container_Boundary(policies, "Policies Controller") {
   }
 }
 
+
+'Rel_R(secrets, policies, "test")
 Container_Boundary(roles, "Roles Controller") {
   Deployment_Node(role, "Single Role", "/roles/{account}/{kind}/{identifier}") {
     Component(get_role, "Get Role Information", "GET")
