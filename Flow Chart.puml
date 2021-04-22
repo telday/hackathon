@@ -1,0 +1,41 @@
+@startuml API Flow Chart
+hide empty description
+[*] --> Login
+Login --> Authenticate
+Authenticate --> Authenticated
+
+state Authenticated {
+    [*] --> LoadPolicy
+    [*] --> CreateSecret
+    [*] --> CreateHostToken
+    ' Secret creation/retrieval
+    LoadPolicy --> CreateSecret
+    CreateSecret --> RetrieveSecret
+    CreateSecret --> RetrieveBatchSecrets
+
+    ' Create and authenticate a new Host
+    LoadPolicy --> CreateHostToken
+    CreateHostToken --> RevokeHostToken
+    CreateHostToken --> CreateHost
+}
+
+Authenticated --> [*]
+
+Login : Retrieve API Key from Conjur
+Authenticate : Use API Key to retrieve Access Token
+
+LoadPolicy : Load a policy into Conjur with
+LoadPolicy : necessary roles/resources
+LoadPolicy : i.e. - !variable test/variable
+
+CreateSecret : Create/Set a secret value
+
+RetrieveSecret : Retrieve a single secret value
+RetrieveBatchSecrets : Retrieve multiple secrets at once
+
+CreateHostToken : Create a new Access Token for
+CreateHostToken : authenticating with the Host Factory
+RevokeHostToken : Disable/Revoke an issued Host Token
+CreateHost : Create a new Host via Host
+CreateHost : Access Token
+@enduml

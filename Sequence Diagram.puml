@@ -1,0 +1,21 @@
+@startuml API Sequence Diagram
+
+' Login Flow
+User -> Conjur : Login Request
+Conjur -> AuthenticateController : Basic Auth Details
+AuthenticateController -> Postgres : Validate Username/Password
+Postgres --> Conjur : Valid
+Conjur --> User : ApiKey
+
+' Authenticate Flow
+User -> Conjur : Authenticate Request
+Conjur -> AuthenticateController : Basic Auth Details
+AuthenticateController -> Postgres : Validate Username/ApiKey
+Postgres -> Conjur : Valid
+Conjur --> User : Access Token
+
+' Create Secret Flow
+
+' Create Host FLow
+
+@enduml

@@ -1,0 +1,134 @@
+@startuml Conjur OSS API
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+
+LAYOUT_LEFT_RIGHT()
+HIDE_STEREOTYPE()
+Container_Boundary(secrets, "Secrets Controller") {
+  Deployment_Node(batch_secrets, "Batch Secrets", "/secrets") {
+    Component(get_batch_secrets, "Request Multiple Secret Values", "GET")
+  }
+  
+  Deployment_Node(specific_secret, "Single Secret", "/secrets/{account}/{kind}/{identifier}") {
+    Component(get_specific_secret, "Request a Secret Value", "GET")
+    Component(set_specific_secret, "Set a Secret Value", "POST")
+  }
+}
+
+Container_Boundary(policies, "Policies Controller") {
+  Deployment_Node(policy, "Single Policy", "/policies/{account}/policy/{identifier}") {
+    Component(replace_policy, "Replace a Policy", "PUT")
+    Component(load_policy, "Load a New Policy", "POST")
+    Component(update_policy, "Update an Existing Policy", "PATCH")
+  }
+}
+
+Container_Boundary(roles, "Roles Controller") {
+  Deployment_Node(role, "Single Role", "/roles/{account}/{kind}/{identifier}") {
+    Component(get_role, "Get Role Information", "GET")
+    Component(update_role, "Update Role", "POST")
+    Component(delete_role, "Delete Role Membership", "DELETE")
+  }
+}
+
+Container_Boundary(resources, "Resources Controller"){
+  Deployment_Node(all_resources, "All Resources", "/resources") {
+    Component(get_all_resources, "Get all Conjur resources", "GET")
+    Deployment_Node(resources_on_account, "Account Resources", "/resources/{account}") {
+      Component(get_resources_on_account, "Get Conjur resources for account", "GET")
+      Deployment_Node(similar_resources_on_account, "Similar Account Resources", "/resources/{account}/{kind}") {
+        Component(get_similar_resources_on_account, "Get Conjur resources of one kind from an account", "GET")
+        Deployment_Node(single_resource, "Single Resource", "/resources/{account}/{kind}/{identifier}") {
+          Component(get_single_resource, "Get a resource from Conjur", "GET")
+        }
+      }
+    }
+  }
+}
+
+Container_Boundary(host_factories, "Host Factories Controller") {
+  Deployment_Node(host_factory, "Host Factory", "/host_factories/hosts") {
+    Component(create_host, "Create a new host", "POST")
+  }
+}
+
+Container_Boundary(host_factory_tokens, "Host Factory Tokens Controller") {
+  Deployment_Node(single_host_factory_tokens, "Host Token Factory", "/host_factory_tokens") {
+    Component(get_host_factory_tokens, "Create a new Host Token", "POST")
+    Deployment_Node(host_token, "Single Host Token", "/host_factory_tokens/{token}") {
+      Component(revoke_host_token, "Revoke a Host Token", "DELETE")
+    }
+  }
+}
+
+Container_Boundary(public_keys, "Public Keys Controller") {
+  Deployment_Node(key_set, "Resource Keys", "/public_keys/{account}/{kind}/{identifier}") {
+    Component(show_key_set, "Show keys for a Resource", "GET")
+  }
+}
+
+Container_Boundary(certificate_authority, "Certificate Authority Controller") {
+  Deployment_Node(single_cert_authority, "Certificate Signing", "/ca/{account}/{service_id}/sign") {
+    Component(sign_certificate, "Retrieve a signed certificate from the configured Certificate Authority service", "POST")
+  }
+}
+
+Container_Boundary(status, "Status Controller") {
+  Deployment_Node(user_info, "Who Am I", "/whoami") {
+    Component(get_user_info, "Gets information about the currently authenticated user", "GET")
+  }
+}
+
+Container_Boundary(authenticate, "Authenticate Controller") {
+  Deployment_Node(authenticators_index, "Authenticators Index", "/authenticators") {
+    Component(get_authentcators, "Details about authenticators on the Conjur server", "GET")
+  }
+
+  Deployment_Node(authenticator, "Single Authenticator", "/{authenticator}(/{service_id})") {
+    Deployment_Node(account_authenticator, "Account Authenticator", "/{authenticator}(/{service_id})/{account}") {
+      Component(update_auth_config, "Update authenticator configuration (enable/disable)", "PATCH")
+      Deployment_Node(authenticator_health, "Authenticator Health", "/{authenticator}(/{service_id})/{account}/status") {
+        Component(get_auth_health, "Gets the health status of an authenticator", "GET")
+      }
+
+      Deployment_Node(auth_login, "Authenticator Login", "/{authenticator}(/{service_id})/{account}/login") {
+        Component(get_api_key, "Login with an authenticator and retrieve an API Key", "GET")
+      }
+
+      Deployment_Node(auth_authenticate, "Authenticate", "/{authenticator}(/{service_id})/{account}/id/authenticate") {
+        Component(get_access_token, "Authenticate with an authenticator and retrieve an Access Token", "POST")
+      }
+    }
+
+    Deployment_Node(k8s_inject_cert, "Kubernetes Certificates", "/{authenticator}/{service_id}/inject_client_cert") {
+      Component(inject_k8s_cert, "Inject Kubernetes Certificate for authentication with Kubernetes", "POST")
+    }
+  }
+}
+
+Container_Boundary(credentials, "Credentials Controller") {
+  Deployment_Node(auth_credentials, "Authenticator Credentials", "/{authenticator}/{account}") {
+    Deployment_Node(password_setting, "User Password", "/authn/{account}/password") {
+      Component(set_password, "Set a users password", "PUT")
+    }
+
+    Deployment_Node(credentials_api_key, "User API Key", "/{authenticator}/{account}/api_key") {
+      Component(rotate_api_key, "Rotate a users personal API Key", "PUT")
+    }
+  }
+}
+
+System(conjur, "Conjur", "Conjur OSS Server")
+
+Rel(conjur, secrets, "Has")
+Rel(conjur, policies, "Has")
+Rel(conjur, roles, "Has")
+Rel(conjur, resources, "Has")
+Rel(conjur, host_factories, "Has")
+Rel(conjur, host_factory_tokens, "Has")
+Rel(conjur, public_keys, "Has")
+Rel(conjur, certificate_authority, "Has")
+Rel(conjur, status, "Has")
+Rel(conjur, authenticate, "Has")
+Rel(conjur, credentials, "Has")
+@enduml
